@@ -66,5 +66,5 @@ class Report(object):
         return content
 
     def run(self):
-        self.app.run_server(debug=True, use_reloader=False)
+        self.app.run_server(debug=True, use_reloader=False, host="0.0.0.0")
         # self.app.run_server(debug=False)

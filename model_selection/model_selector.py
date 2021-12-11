@@ -74,10 +74,12 @@ class ModelSelector(object):
         self.evaluator = Evaluator(*self.factories)
 
     def save(self, file_name):
+        logging.info(f'Saving model selector in classifiers/{file_name}')
         dest = os.path.join('classifiers')
         pickle.dump(self, open(os.path.join(dest, file_name), 'wb'), protocol=4)
 
     @staticmethod
     def load(file_name):
+        logging.info(f'Loading model selector from classifiers/{file_name}')
         dest = os.path.join('classifiers')
         return pickle.load(open(os.path.join(dest, file_name), 'rb'))

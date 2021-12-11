@@ -179,4 +179,6 @@ datasets/
 datasets/*
 factories/
 factories/*
+
+*.log
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,python,venv

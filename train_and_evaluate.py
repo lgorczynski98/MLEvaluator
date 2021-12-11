@@ -2,8 +2,11 @@ from model_selection.model_selector import ModelSelector
 import data_generators.sample_generators as generators
 from sklearn.datasets import load_digits
 import logging
+import logging.config
 import numpy as np
 import pandas as pd
+import time
+import os
 from app.Report import Report
 
 from models.perceptron import Perceptron
@@ -31,7 +34,9 @@ from sklearn.ensemble import AdaBoostClassifier as SklearnAdaBoostClassifier
 
 def main():
 
-    logging.basicConfig(level=logging.INFO)
+    logging.config.fileConfig('log/logging.conf')
+    
+    logging.info(f'Starting {__name__}')
 
     report = Report()
 
@@ -68,6 +73,7 @@ def main():
     blobs2d_model_selector.evaluator.init_report()
     blobs2d_model_selector.evaluator.report_handler.sample_data = df
     report.add_page('Blobs_2D', blobs2d_model_selector.evaluator.get_report_elements(report.app))
+    blobs2d_model_selector.save('blob2d.pkl')
 
 
 ######################################BLOBS 3D DATASET###################################################
@@ -103,6 +109,7 @@ def main():
     blobs3d_model_selector.evaluator.init_report()
     blobs3d_model_selector.evaluator.report_handler.sample_data = df
     report.add_page('Blobs_3D', blobs3d_model_selector.evaluator.get_report_elements(report.app))
+    blobs3d_model_selector.save('blob3d.pkl')
 
 
 ######################################BLOBS MANY FEATURES DATASET###################################################
@@ -138,6 +145,7 @@ def main():
     many_features_blobs_model_selector.evaluator.init_report()
     many_features_blobs_model_selector.evaluator.report_handler.sample_data = df
     report.add_page('Many_Features_Blobs', many_features_blobs_model_selector.evaluator.get_report_elements(report.app))
+    many_features_blobs_model_selector.save('blob_many_features.pkl')
 
 
     ######################################MOONS DATASET###################################################
@@ -173,6 +181,7 @@ def main():
     moons_model_selector.evaluator.init_report()
     moons_model_selector.evaluator.report_handler.sample_data = df
     report.add_page('Moons', moons_model_selector.evaluator.get_report_elements(report.app))
+    moons_model_selector.save('moons.pkl')
     
 #     ######################################XOR DATASET###################################################
     
@@ -207,6 +216,7 @@ def main():
     xor_model_selector.evaluator.init_report()
     xor_model_selector.evaluator.report_handler.sample_data = df
     report.add_page('XOR', xor_model_selector.evaluator.get_report_elements(report.app))
+    xor_model_selector.save('xor.pkl')
     
 
 ######################################DIGITS DATASET###################################################
@@ -233,6 +243,7 @@ def main():
     digits_model_selector.evaluator.init_report()
     digits_model_selector.evaluator.report_handler.sample_data = df
     report.add_page('Digits', digits_model_selector.evaluator.get_report_elements(report.app))
+    digits_model_selector.save('digits.pkl')
     
 
 ######################################IMDB SENTIMENT ANALYZIS DATASET###################################################
@@ -263,14 +274,6 @@ def main():
 
     imdb_model_selector.evaluator.init_report()
     report.add_page('IMDB', imdb_model_selector.evaluator.get_report_elements(report.app))
-    
-
-    blobs2d_model_selector.save('blob2d.pkl')
-    blobs3d_model_selector.save('blob3d.pkl')
-    many_features_blobs_model_selector.save('blob_many_features.pkl')
-    moons_model_selector.save('moons.pkl')
-    xor_model_selector.save('xor.pkl')
-    digits_model_selector.save('digits.pkl')
     imdb_model_selector.save('imdb.pkl')
 
 

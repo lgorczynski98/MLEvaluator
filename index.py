@@ -1,13 +1,16 @@
 import logging
+import logging.config
 from app.Report import Report
 from model_selection.model_selector import ModelSelector
 import pandas as pd
 
 
-logging.basicConfig(level=logging.INFO)
-
-
 def main():
+
+    logging.config.fileConfig('log/logging.conf')
+    
+    logging.info(f'Starting {__name__}')
+
     report = Report()
 
     blob2d = ModelSelector.load('blob2d.pkl')

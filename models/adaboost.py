@@ -84,7 +84,7 @@ class AdaBoost(Classifier):
                 score_sum += 1
         return float(score_sum / len(y))
 
-    def get_params(self):
+    def get_params(self, **kwargs):
         return {
             'classifier_cls': self.classifier_cls,
             'params': self.params,

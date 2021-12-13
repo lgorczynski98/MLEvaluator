@@ -14,7 +14,7 @@ class SupportVectorClassifier(LinearClassifier):
             c: parameter c value
 
             kernel: kernel basis function (available values: None, 
-                    polynomial, kernel_basis, tangent_neural_network)
+                    polynomial, radial_basis, tangent_neural_network)
 
             d: polynomial kernel exponent value
 
@@ -171,7 +171,7 @@ class SupportVectorClassifier(LinearClassifier):
                 score += 1
         return score/len(X)
 
-    def get_params(self):
+    def get_params(self, **kwargs):
         return {
             'eta': self.eta,
             'n_iter': self.n_iter,
@@ -183,6 +183,21 @@ class SupportVectorClassifier(LinearClassifier):
             'k1': self.k1,
             'k2': self.k2,
         }
+
+    def get_effective_params(self):
+        basic_params = {
+            'eta': self.eta,
+            'n_iter': self.n_iter,
+            'c': self.c,
+            'kernel': self.kernel,
+        }
+        kernels = {
+            None: {},
+            'polynomial': {'d': self.d, 'r': self.r},
+            'radial_basis': {'gamma': self.gamma},
+            'tangent_neural_network': {'k1': self.k1, 'k2': self.k2},
+        }
+        return {**basic_params, **kernels[self.kernel]}
 
     def __repr__(self):
         return (f'SupportVectorClassifier(eta={self.eta}, n_iter={self.n_iter}, c={self.c}, '

@@ -39,7 +39,7 @@ class Perceptron(LinearClassifier):
             self.errors_.append(errors)
         return self
 
-    def get_params(self):
+    def get_params(self, **kwargs):
         return {
             'eta': self.eta,
             'n_iter': self.n_iter,

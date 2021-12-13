@@ -429,7 +429,7 @@ class DecisionTreeClassifier(Classifier):
                 score += 1
         return score / len(y)
         
-    def get_params(self):
+    def get_params(self, **kwargs):
         return {
             'criterion': self.criterion,
             'max_depth': self.max_depth,

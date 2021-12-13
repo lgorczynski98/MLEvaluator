@@ -140,7 +140,7 @@ class NeuralNetMLP(Classifier):
 
         return self
 
-    def get_params(self):
+    def get_params(self, **kwargs):
         return {
             'n_output': self.n_output,
             'n_features': self.n_features,

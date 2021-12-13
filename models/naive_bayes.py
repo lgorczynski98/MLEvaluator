@@ -104,7 +104,7 @@ class GausianNaiveBayesClassifier(Classifier):
                 score += 1
         return score / len(Y)
 
-    def get_params(self):
+    def get_params(self, **kwargs):
         return {}
 
     def __repr__(self):

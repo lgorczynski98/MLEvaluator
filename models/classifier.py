@@ -52,8 +52,11 @@ class Classifier(ABC):
         '''  
 
     @abstractmethod
-    def get_params(self):
+    def get_params(self, **kwargs):
         '''Returns model parameters'''
+
+    def get_effective_params(self):
+        return self.get_params()
 
     def save_classifier(self, file_name):
         ''' Pickles the classifier into the 'classifiers' directory.

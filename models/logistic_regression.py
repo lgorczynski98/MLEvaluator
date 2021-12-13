@@ -167,7 +167,7 @@ class LogisticRegression(LinearClassifier):
         probas = [[1-proba, proba] for proba in probas]
         return np.array(probas)
 
-    def get_params(self):
+    def get_params(self, **kwargs):
         return {
             'eta': self.eta,
             'n_iter': self.n_iter,

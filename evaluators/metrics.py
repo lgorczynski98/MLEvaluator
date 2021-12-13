@@ -5,6 +5,8 @@ from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_
 import itertools
 import logging
 
+from models.classifier import Classifier
+
 
 def dict_cartesian_product(params):
 	keys = params.keys()
@@ -16,10 +18,20 @@ def dict_cartesian_product(params):
 
 def grid_search(classifier_cls, params, X, y, n_splits=10, random_state=None, shuffle=False):
 	combinations = dict_cartesian_product(params)
+	checked_combinations = []
 	scores = []
 	logging.warning(f'{classifier_cls} grid search')
 	for combination in combinations:
 		classifier = classifier_cls(**combination)
+		
+		if isinstance(classifier, Classifier):
+			if classifier.get_effective_params() in checked_combinations:
+				scores.append(0)
+				logging.debug(f'Skipping combination {combination} because the same effective combination was already checked')
+				continue
+			else:
+				checked_combinations.append(classifier.get_effective_params())
+
 		mean, std = stratified_k_fold(classifier, X, y)
 		scores.append(mean)
 		logging.info(f'{combination}: mean: {mean} std: {std}')
@@ -60,10 +72,10 @@ def stratified_k_fold(classifier, x_train, y_train, n_splits=10, random_state=No
 	kfold = StratifiedKFold(n_splits=n_splits, random_state=random_state, shuffle=shuffle).split(x_train, y_train)
 	scores = []
 	for k, (train, test) in enumerate(kfold):
-	    classifier.fit(x_train[train], y_train[train])
-	    score = classifier.score(x_train[test], y_train[test])
-	    scores.append(score)
-	    logging.debug(f'{repr(classifier)}: subset {k+1} - score: {score:.4f}')
+		classifier.fit(x_train[train], y_train[train])
+		score = classifier.score(x_train[test], y_train[test])
+		scores.append(score)
+		logging.debug(f'{repr(classifier)}: subset {k+1} - score: {score:.4f}')
 	mean, std = np.mean(scores), np.std(scores)
 	logging.info(f'{repr(classifier)}: mean {mean:.4f} +/- {std:.4f}')
 	return mean, std

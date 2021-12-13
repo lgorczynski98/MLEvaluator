@@ -193,7 +193,7 @@ class RandomForrestClassifier(Classifier):
             print(f'Estimator: {idx+1}')
             estimator.print_tree(spacing)
 
-    def get_params(self):
+    def get_params(self, **kwargs):
         return {
             'n_estimators': self.n_estimators,
             'criterion': self.criterion,

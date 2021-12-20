@@ -4,6 +4,8 @@ from sklearn.model_selection import StratifiedKFold, cross_val_score, learning_c
 from sklearn.metrics import confusion_matrix, precision_score, recall_score, f1_score
 import itertools
 import logging
+import multiprocessing
+from multiprocessing import Process
 
 from models.classifier import Classifier
 
@@ -44,7 +46,56 @@ def grid_search(classifier_cls, params, X, y, n_splits=10, random_state=None, sh
 		logging.warning(f'{combinations[i]}: {scores[i]}')
 	return [combinations[i] for i in idx]
 
-def stratified_k_fold(classifier, x_train, y_train, n_splits=10, random_state=None, shuffle=False):
+def single_multiprocessing_fit(classifier_cls, params, x_train, x_test, y_train, y_test, scores, subset):
+	classifier = classifier_cls(**params)
+	classifier.fit(x_train, y_train)
+	score = classifier.score(x_test, y_test)
+	scores.append(score)
+	return {'classifier': classifier, 'subset': subset, 'score': score}
+
+def proc_callback(result):
+	classifier = result['classifier']
+	subset = result['subset']
+	score = result['score']
+	logging.debug(f'{repr(classifier)}: subset {subset} - score: {score:.4f}')
+
+def perform_multiprocessed_stratified_k_fold(classifier, x_train, y_train, n_splits=10, random_state=None, shuffle=False):
+	kfold = StratifiedKFold(n_splits=n_splits, random_state=random_state, shuffle=shuffle).split(x_train, y_train)
+	manager = multiprocessing.Manager()
+	scores = manager.list()
+	classifier_cls = type(classifier)
+	params = classifier.get_params()
+	pool = multiprocessing.Pool(n_splits)
+	results = []
+	for k, (train, test) in enumerate(kfold):
+		r = pool.apply_async(single_multiprocessing_fit, (classifier_cls, params, x_train[train], x_train[test], y_train[train], y_train[test], scores, k+1))
+		results.append(r)
+
+	for r in results:
+		r.wait()
+	pool.close()
+	pool.join()
+	for idx, score in enumerate(scores):
+		logging.debug(f'{repr(classifier)}: subset {idx+1} - score: {score:.4f}')
+
+	mean, std = np.mean(scores), np.std(scores)
+	logging.info(f'{repr(classifier)}: mean {mean:.4f} +/- {std:.4f}')
+	return mean, std
+
+def perform_stratified_k_fold(classifier, x_train, y_train, n_splits=10, random_state=None, shuffle=False):
+	kfold = StratifiedKFold(n_splits=n_splits, random_state=random_state, shuffle=shuffle).split(x_train, y_train)
+	scores = []
+	for k, (train, test) in enumerate(kfold):
+		classifier.fit(x_train[train], y_train[train])
+		score = classifier.score(x_train[test], y_train[test])
+		scores.append(score)
+		logging.debug(f'{repr(classifier)}: subset {k+1} - score: {score:.4f}')
+		
+	mean, std = np.mean(scores), np.std(scores)
+	logging.info(f'{repr(classifier)}: mean {mean:.4f} +/- {std:.4f}')
+	return mean, std
+
+def stratified_k_fold(classifier, x_train, y_train, n_splits=10, random_state=None, shuffle=False, multiprocessed=False):
 	''' Stratified K Fold calculation with sklearn StratifiedKFold usage.
 
         Parameters:
@@ -69,16 +120,10 @@ def stratified_k_fold(classifier, x_train, y_train, n_splits=10, random_state=No
         float: mean - mean value of the stratified K fold algorithm
         float: std - standard deviation of the stratified K fold algorithm
      '''
-	kfold = StratifiedKFold(n_splits=n_splits, random_state=random_state, shuffle=shuffle).split(x_train, y_train)
-	scores = []
-	for k, (train, test) in enumerate(kfold):
-		classifier.fit(x_train[train], y_train[train])
-		score = classifier.score(x_train[test], y_train[test])
-		scores.append(score)
-		logging.debug(f'{repr(classifier)}: subset {k+1} - score: {score:.4f}')
-	mean, std = np.mean(scores), np.std(scores)
-	logging.info(f'{repr(classifier)}: mean {mean:.4f} +/- {std:.4f}')
-	return mean, std
+	if multiprocessed:
+		return perform_multiprocessed_stratified_k_fold(classifier, x_train, y_train, n_splits, random_state, shuffle)
+	else:
+		return perform_stratified_k_fold(classifier, x_train, y_train, n_splits, random_state, shuffle)
 
 def cross_validation_score(classifier, x_train, y_train, cv=10, n_jobs=1):
 	'''Sklear cross validation. Accepts only scikit-learn estimators
